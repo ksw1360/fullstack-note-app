@@ -1,0 +1,36 @@
+# =====================================================
+# ./gradlew test 시 동작할 DB 설정
+# =====================================================
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  h2:
+    console:
+      enabled: false
+
+server:
+  port: 0   # 테스트 시 랜덤 포트 (포트 충돌 방지)
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000
+
+logging:
+  level:
+    root: INFO
+    com.example.noteapp: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE   # 바인딩 파라미터까지 보고 싶을 때

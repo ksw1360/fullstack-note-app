@@ -1,0 +1,25 @@
+# =====================================================
+# application-test.yml — 테스트 환경 (H2 인메모리 DB)
+# MySQL 없이 ./gradlew test 실행 가능
+# =====================================================
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.example.noteapp: INFO
