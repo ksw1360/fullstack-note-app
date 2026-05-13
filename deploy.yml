@@ -1,0 +1,45 @@
+# 1. 인스턴스 ID 추출
+FE_IDS=$(aws autoscaling describe-auto-scaling-groups \
+  --auto-scaling-group-names fullstack-asg-fe \
+  --region ap-northeast-2 \
+  --query 'AutoScalingGroups[0].Instances[?LifecycleState==`InService`].InstanceId' \
+  --output text | tr '\t' ' ')
+
+# 2. 명령어 정의 (JSON 내 주석 제거)
+COMMANDS_JSON='{
+  "commands": [
+    "echo \"[$(date)] 배포 시작\" > /tmp/deploy.log",
+    "aws s3 cp s3://fullstack-deploy-test7/frontend/frontend-latest.zip /tmp/fe.zip --region ap-northeast-2",
+    "rm -rf /tmp/fe-new && mkdir -p /tmp/fe-new",
+    "unzip -o /tmp/fe.zip -d /tmp/fe-new",
+    "if [ -d \"/tmp/fe-new/frontend\" ]; then mv /tmp/fe-new/frontend/* /tmp/fe-new/ 2>/dev/null || true; fi",
+    "sudo -u ubuntu pm2 stop note-frontend 2>/dev/null || true",
+    "rm -rf /opt/frontend/.next /opt/frontend/public",
+    "cp -r /tmp/fe-new/.next /opt/frontend/ || echo \".next missing\" >> /tmp/deploy.log",
+    "cp -r /tmp/fe-new/public /opt/frontend/ 2>/dev/null || true",
+    "cp /tmp/fe-new/package.json /opt/frontend/ || echo \"package.json missing\" >> /tmp/deploy.log",
+    "cp /tmp/fe-new/package-lock.json /opt/frontend/ 2>/dev/null || true",
+    "cp /tmp/fe-new/next.config.ts /opt/frontend/ 2>/dev/null || true",
+    "cd /opt/frontend && npm install --production >> /tmp/deploy.log 2>&1",
+    "chown -R ubuntu:ubuntu /opt/frontend",
+    "sudo -u ubuntu pm2 start npm --name note-frontend -- start >> /tmp/deploy.log 2>&1",
+    "sudo -u ubuntu pm2 save",
+    "sleep 10",
+    "STATUS=$(curl -sf -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
+    "if [ \"$STATUS\" = \"200\" ]; then echo \"DEPLOY OK\" >> /tmp/deploy.log; else echo \"DEPLOY FAIL: $STATUS\" >> /tmp/deploy.log && exit 1; fi",
+    "rm -rf /tmp/fe.zip /tmp/fe-new"
+  ]
+}'
+
+# 3. 명령 전송
+for IID in $FE_IDS; do
+  aws ssm send-command \
+    --region ap-northeast-2 \
+    --instance-ids "$IID" \
+    --document-name "AWS-RunShellScript" \
+    --parameters "$COMMANDS_JSON" \
+    --timeout-seconds 180 \
+    --query "Command.CommandId" --output text
+  
+  echo "Frontend 배포 명령 전송 완료: $IID"
+done
