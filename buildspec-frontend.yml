@@ -1,5 +1,7 @@
 version: 0.2
-
+env:
+  variables:
+    NEXT_PUBLIC_API_URL: http://note-app-backend-test4-env.eba-wrtm7ru2.ap-northeast-2.elasticbeanstalk.com
 phases:
   install:
     runtime-versions:
