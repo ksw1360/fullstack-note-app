@@ -14,8 +14,9 @@ phases:
       - find . -name "*.jar" -type f
   post_build:
     commands:
+      - cd $CODEBUILD_SRC_DIR
       - echo "=== libs 폴더 내용 ==="
-      - ls -la backend/build/libs/ || echo "폴더 없음"
+      - ls -la backend/build/libs/
       - mkdir -p deploy-backend
       - cp backend/build/libs/*.jar deploy-backend/note-app.jar
       - cp backend/Procfile deploy-backend/
