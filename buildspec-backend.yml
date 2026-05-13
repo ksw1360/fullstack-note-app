@@ -1,4 +1,3 @@
-
 version: 0.2
 
 phases:
@@ -11,10 +10,14 @@ phases:
   build:
     commands:
       - cd backend && chmod +x gradlew && ./gradlew bootJar -x test
+      - echo "=== JAR 파일 찾기 ==="
+      - find . -name "*.jar" -type f
   post_build:
     commands:
+      - echo "=== libs 폴더 내용 ==="
+      - ls -la backend/build/libs/ || echo "폴더 없음"
       - mkdir -p deploy-backend
-      - cp backend/build/libs/note-app.jar deploy-backend/
+      - cp backend/build/libs/*.jar deploy-backend/note-app.jar
       - cp backend/Procfile deploy-backend/
       - '[ -d backend/.ebextensions ] && cp -r backend/.ebextensions deploy-backend/ || true'
       - ls -la deploy-backend/
@@ -24,4 +27,3 @@ artifacts:
     - '**/*'
   base-directory: deploy-backend
   discard-paths: no
- 
