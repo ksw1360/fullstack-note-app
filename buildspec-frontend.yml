@@ -1,25 +1,27 @@
-
 version: 0.2
 
 phases:
   install:
     runtime-versions:
-      nodejs : 20
+      nodejs: 20
   pre_build:
     commands:
+      - cd $CODEBUILD_SRC_DIR
       - node -v && npm -v
       - cd frontend && npm ci
   build:
     commands:
+      - cd $CODEBUILD_SRC_DIR
       - cd frontend && npm run build
   post_build:
     commands:
+      - cd $CODEBUILD_SRC_DIR
       - mkdir -p deploy-frontend
       - cp -r frontend/.next deploy-frontend/
       - cp frontend/package.json deploy-frontend/
       - cp frontend/package-lock.json deploy-frontend/
       - cp frontend/Procfile deploy-frontend/
-      - '[ -f frontend/next.config.ts ] && cp -r frontend/next.config.ts deploy-frontend/ || true'
+      - '[ -f frontend/next.config.ts ] && cp frontend/next.config.ts deploy-frontend/ || true'
       - '[ -d frontend/public ] && cp -r frontend/public deploy-frontend/ || true'
       - '[ -d frontend/.ebextensions ] && cp -r frontend/.ebextensions deploy-frontend/ || true'
 
@@ -28,4 +30,3 @@ artifacts:
     - '**/*'
   base-directory: deploy-frontend
   discard-paths: no
- 
