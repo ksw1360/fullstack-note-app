@@ -7,7 +7,6 @@ phases:
       java: corretto17
   pre_build:
     commands:
-      - echo "=== 백엔드 빌드 시작: $(date) ==="
       - java -version
   build:
     commands:
